@@ -102,11 +102,22 @@ app.get('/mcp', (_req, res) => res.status(405).json({ error: 'Use POST for MCP (
 // --- REST fallback, password required on every route -----------------------
 
 const api = express.Router();
+// Same capability tokens as everything else. The shared password is gone: it
+// was weak, shared, unrevocable, and it outlived the flow it was built for.
 api.use((req, res, next) => {
   const ip = clientIp(req);
-  const access = checkAccess({ ip, supplied: extractPassword(req), action: `${req.method} ${req.path}` });
-  if (!access.ok) return res.status(access.status).json({ error: access.error });
-  audit({ event: 'auth.ok', ip, action: `${req.method} ${req.path}`, ua: req.get('user-agent') || null });
+  const rl = checkRateOnly(ip);
+  if (!rl.ok) return res.status(rl.status).json({ ok: false, error: rl.error });
+
+  const bearer = (req.get('authorization') || '').replace(/^Bearer\s+/i, '').trim()
+    || req.get('x-gateway-token') || '';
+  const holder = resolveToken(bearer);
+  if (!holder || holder.revoked) {
+    audit({ event: 'rest.denied', ip, action: `${req.method} ${req.path}` });
+    return res.status(401).json({ ok: false, error: 'A valid access token is required in the Authorization header.' });
+  }
+  req.holder = holder;
+  audit({ event: 'rest.ok', ip, who: holder.label, action: `${req.method} ${req.path}` });
   next();
 });
 

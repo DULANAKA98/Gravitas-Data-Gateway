@@ -35,12 +35,7 @@ export const config = {
 };
 
 export function assertBootConfig() {
-  const missing = [];
-  if (!config.password) missing.push('GATEWAY_PASSWORD');
-  if (missing.length) {
-    console.error(`[boot] refusing to start, missing required env: ${missing.join(', ')}`);
-    process.exit(1);
-  }
+  // No shared password any more - access is by capability token only.
   const warn = [];
   if (!config.metricool.token) warn.push('METRICOOL_TOKEN (metricool tools will return a clear error)');
   if (!config.meta.accessToken) warn.push('META_ACCESS_TOKEN (meta tools will return a clear error)');

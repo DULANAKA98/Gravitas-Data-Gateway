@@ -72,7 +72,6 @@ cd server && npm install
 Configuration lives in an environment file readable only by root:
 
 ```
-GATEWAY_PASSWORD=<for the legacy /v1 REST routes>
 METRICOOL_TOKEN=<from Metricool settings>
 METRICOOL_USER_ID=<numeric user id>
 META_ACCESS_TOKEN=<page access token>
