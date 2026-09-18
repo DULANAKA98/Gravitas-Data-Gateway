@@ -1,0 +1,19 @@
+dulanaka-data-gateway.duckdns.org {
+	encode gzip
+
+	# Do not let the audit trail be defeated by a missing client address.
+	reverse_proxy 127.0.0.1:8790 {
+		header_up X-Forwarded-For {remote_host}
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "no-referrer"
+		-Server
+	}
+
+	log {
+		output file /var/log/caddy/gateway-access.log
+	}
+}

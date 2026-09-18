@@ -1,0 +1,13 @@
+{
+  "name": "dulanaka-data-gateway",
+  "version": "1.0.0",
+  "description": "Dulanaka Data Gateway - password-gated read-only proxy for Metricool and Meta Graph API",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": { "start": "node src/index.js" },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "express": "^4.21.2",
+    "zod": "^3.24.1"
+  }
+}

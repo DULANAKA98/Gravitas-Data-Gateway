@@ -1,0 +1,17 @@
+{
+  "name": "dulanaka-data-gateway",
+  "owner": {
+    "name": "Dulanaka Yasaswin"
+  },
+  "metadata": {
+    "description": "Social media analytics for Gravitas clients, via Metricool and the Meta Graph API",
+    "version": "2.0.0"
+  },
+  "plugins": [
+    {
+      "name": "dulanaka-gateway",
+      "source": "./plugins/dulanaka-gateway",
+      "description": "Read-only access to Metricool and Meta analytics for Gravitas client brands. Requires an access token from the gateway operator."
+    }
+  ]
+}

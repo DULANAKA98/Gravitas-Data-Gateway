@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dulanaka Data Gateway</title>
+<style>
+  :root{--bg:#fbfbfa;--fg:#1a1a18;--muted:#6b6b66;--line:#e4e4e0;--accent:#2f6f4f;--code:#f3f3f1}
+  @media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#17171a;--fg:#e9e9e6;--muted:#9a9a94;--line:#2c2c30;--accent:#7fc7a0;--code:#212126}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+  .wrap{max-width:720px;margin:0 auto;padding:56px 16px 80px}
+  h1{font-size:1.75rem;margin:0 0 4px;letter-spacing:-.02em}
+  .by{color:var(--muted);font-size:.9rem;margin:0 0 32px}
+  h2{font-size:1rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:36px 0 12px;font-weight:600}
+  code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.86rem}
+  pre{background:var(--code);border:1px solid var(--line);border-radius:8px;padding:12px 14px;overflow-x:auto}
+  .pill{display:inline-block;background:var(--code);border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-size:.8rem;color:var(--muted)}
+  ul{padding-left:20px}li{margin:6px 0}
+  .tools{border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .tools div{padding:9px 14px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:baseline}
+  .tools div:last-child{border-bottom:0}
+  .tools code{color:var(--accent);flex:0 0 auto}
+  .tools span{color:var(--muted);font-size:.86rem}
+  footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:.85rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Dulanaka Data Gateway</h1>
+  <p class="by">Built by Dulanaka Yasaswin · <span class="pill">read-only</span> <span class="pill">password required</span></p>
+
+  <p>A single endpoint that lets an AI agent pull social media metrics from
+  <strong>Metricool</strong> and the <strong>Meta Graph API</strong> without ever handling the API keys.
+  The keys stay on this server. The agent only gets data.</p>
+
+  <h2>Connect an agent</h2>
+  <p>Add this as a remote MCP server:</p>
+  <pre>https://167-233-142-168.sslip.io/mcp</pre>
+  <p>Then ask it for what you need. It will prompt you for the access password on the first call.</p>
+
+  <h2>Available tools</h2>
+  <div class="tools">
+    <div><code>metricool_list_brands</code><span>brands and their blogIds</span></div>
+    <div><code>metricool_timeline</code><span>metrics over a date range</span></div>
+    <div><code>metricool_raw</code><span>any Metricool GET</span></div>
+    <div><code>meta_list_pages</code><span>pages + linked IG accounts</span></div>
+    <div><code>meta_page_insights</code><span>Facebook page metrics</span></div>
+    <div><code>meta_ig_insights</code><span>Instagram account metrics</span></div>
+    <div><code>meta_ig_media</code><span>recent posts, likes, comments</span></div>
+    <div><code>meta_raw</code><span>any Graph GET</span></div>
+  </div>
+
+  <h2>Or use plain HTTP</h2>
+  <pre>curl -H "X-Gateway-Password: &lt;password&gt;" \
+  https://167-233-142-168.sslip.io/v1/metricool/brands</pre>
+
+  <h2>Notes</h2>
+  <ul>
+    <li>Read-only. There are no endpoints that post, edit or delete anything.</li>
+    <li>Every call is logged with time, source IP and what was requested.</li>
+    <li>Rate limited; repeated bad passwords lock out the source address.</li>
+    <li>This serves real client data. Do not share the password outside the team.</li>
+  </ul>
+
+  <footer>Dulanaka Data Gateway · running on Hetzner · <a href="/health" style="color:var(--accent)">health</a></footer>
+</div>
+</body>
+</html>
