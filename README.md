@@ -1,75 +1,123 @@
-# Dulanaka Data Gateway
+# Gravitas Data Gateway
 
-Read-only social media analytics for Gravitas client brands, from
-[Metricool](https://metricool.com) and the Meta Graph API, exposed to AI agents
-as MCP tools.
-
-Built by Dulanaka Yasaswin.
-
-## Why this exists
-
-Pulling client analytics into an AI workflow normally means handing the agent an
-API key. That is a bad trade: Metricool and Meta tokens are long-lived, broadly
-scoped, and often carry write access. This gateway keeps them on one server and
-hands out revocable read-only access instead.
-
-```
-   agent  --->  gateway  --->  Metricool API
-                        \--->  Meta Graph API
-
-   agent holds:    a revocable access token, read-only
-   gateway holds:  the upstream API keys, never transmitted
-```
-
-If someone's access token leaks, you revoke that one token. The upstream keys
-are untouched and nobody else is disrupted.
-
-## Install
-
-```
-/plugin marketplace add DULANAKA98/Gravitas-Data-Gateway
-/plugin install dulanaka-gateway
-```
-
-Then set the access token you were given by the gateway operator:
-
-```
-export DULANAKA_GATEWAY_TOKEN="your-token"
-```
-
-To point at a different deployment:
-
-```
-export DULANAKA_GATEWAY_URL="https://your-gateway-host"
-```
-
-Restart Claude Code, then ask for what you need:
+Ask an AI assistant about your clients' social media performance, in plain
+English. It pulls live numbers from Metricool and Meta.
 
 > how did CIMB Malaysia's Instagram do last week?
 
 > compare Pocky's Facebook and Instagram engagement this month
 
-## Tools
+> which 7DAYS TikTok post performed best in September?
 
-| Tool | Returns |
-|---|---|
-| `list_clients` | brands this token covers, with blogIds and networks |
-| `metricool_content` | posts, stories or reels for a client and network |
-| `meta_ig_insights` | Instagram account metrics |
-| `meta_ig_media` | recent Instagram posts with likes and comments |
-| `meta_page_insights` | Facebook page metrics |
+Works in **Claude Code** and **Codex**. Setup is two commands and takes a minute.
 
-All read-only. Nothing here can post, edit or delete.
+---
 
-## Running your own
+## Setup
 
-`server/` is the full gateway. Node 20 or newer.
+You need an access token. Ask Dulanaka for one — it is a short phrase he will
+give you. Everything below refers to it as `YOUR_TOKEN`.
+
+### Claude Code
+
+Paste these two lines into Claude Code, one at a time:
+
+```
+/plugin marketplace add DULANAKA98/Gravitas-Data-Gateway
+```
+
+```
+/plugin install dulanaka-gateway
+```
+
+Then set your token. On **Windows**, paste this into Command Prompt:
+
+```
+setx DULANAKA_GATEWAY_TOKEN "YOUR_TOKEN"
+```
+
+On **Mac**, paste this into Terminal:
+
+```
+echo 'export DULANAKA_GATEWAY_TOKEN="YOUR_TOKEN"' >> ~/.zshrc && source ~/.zshrc
+```
+
+Close Claude Code and open it again. That is it.
+
+### Codex
+
+Paste this into your terminal, replacing `YOUR_TOKEN`:
+
+```
+codex mcp add gravitas --url https://167-233-142-168.sslip.io/mcp --header "Authorization: Bearer YOUR_TOKEN"
+```
+
+If your version of Codex does not have `codex mcp add`, open `~/.codex/config.toml`
+in any text editor and add these three lines at the bottom:
+
+```toml
+[mcp_servers.gravitas]
+url = "https://167-233-142-168.sslip.io/mcp"
+http_headers = { Authorization = "Bearer YOUR_TOKEN" }
+```
+
+Restart Codex.
+
+### Checking it worked
+
+Ask your assistant:
+
+> which clients can you see in the Gravitas gateway?
+
+It should list frisogoldmy, 7DAYS, CIMB Malaysia and Pocky. If it says it has no
+such tool, close the app completely and reopen it — the token is only read at
+startup.
+
+---
+
+## What you can ask for
+
+**Clients:** frisogoldmy, 7DAYS, CIMB Malaysia, Pocky
+**Networks:** Instagram, Facebook, TikTok, YouTube (varies by client)
+
+Posts, stories and reels with their engagement numbers, for any date range.
+For CIMB Malaysia there is also direct Meta data: reach, follower counts and
+page metrics.
+
+You never need to remember a client ID or a date format. Just ask.
+
+## What it cannot do
+
+It is read-only. It cannot post, schedule, edit, delete, or touch ad spend.
+There is no tool here that changes anything, by design.
+
+---
+
+## Troubleshooting
+
+**"I don't have access to that tool"** — close the app fully and reopen it.
+Environment variables are read once at startup.
+
+**"Invalid or missing token"** — your token may have been revoked, or there is a
+typo. Check with Dulanaka.
+
+**"This access link does not cover X"** — your token is scoped to certain
+clients only. Ask Dulanaka to widen it.
+
+**Nothing comes back for a client** — some brands have no connected social
+accounts, so there is genuinely nothing to pull.
+
+---
+
+## For whoever runs the gateway
+
+`server/` holds the gateway. Node 20 or newer.
 
 ```
 cd server && npm install
 ```
 
-Configuration lives in an environment file readable only by root:
+Secrets live in an environment file readable only by root:
 
 ```
 METRICOOL_TOKEN=<from Metricool settings>
@@ -82,26 +130,31 @@ META_INSTAGRAM_ACCOUNT_ID=<numeric ig business account id>
 Issue and revoke access tokens:
 
 ```
-node bin/token.mjs new "Sarah" "CIMB Malaysia"
-node bin/token.mjs new "Yasas" all
-node bin/token.mjs list
-node bin/token.mjs revoke "Sarah"
+node bin/token.mjs new "Sarah" "CIMB Malaysia"     # one client only
+node bin/token.mjs new "Team" all                  # everything
+node bin/token.mjs new "Team" all my-chosen-phrase # pick the value yourself
+node bin/token.mjs list                            # who has one, and their usage
+node bin/token.mjs revoke "Sarah"                  # kill one, others unaffected
 ```
+
+Chosen values must be at least 16 characters. A single dictionary word is
+guessable on a public host; the gateway rejects anything shorter.
 
 `server/dulanaka-gateway.service` and `server/Caddyfile` are the systemd unit
 and reverse proxy config used in production.
 
-## Security notes
+### How access works
 
-- Upstream API keys live only in the server environment file, mode 0600, root.
-- Access tokens are 160-bit random values in a 0600 file owned by the service
-  user, revocable individually and scopeable to named clients.
-- Every request is logged with the token label, source address and what was
-  requested.
-- Credentials are accepted in headers only. Passing them in a URL is deliberately
-  unsupported: query strings leak into server logs, proxy logs and browser
-  history.
-- Rate limited per source address.
+The Metricool and Meta API keys never leave the server. Users hold a revocable
+token that lets them read through the gateway and nothing else. If a user's
+token leaks you revoke that one token; the upstream keys are untouched and
+nobody else is disrupted.
+
+Credentials are accepted in request headers only — never in a URL — because
+query strings end up in server logs, proxy logs and browser history.
+
+Every request is logged with the token label, source address and what was asked
+for. Rate limited per source address, with lockout after repeated failures.
 
 ## Notes on the upstream APIs
 
