@@ -6,6 +6,7 @@ import { audit, clientIp } from './audit.js';
 import { handleMcpRequest } from './mcp.js';
 import { dataPage } from './flow.js';
 import { catalogPage } from './catalog.js';
+import { oauthRouter } from './oauth/routes.js';
 import { resolve as resolveToken, allowsClient } from './tokens.js';
 import { checkAccess, extractPassword, checkRateOnly } from './auth.js';
 import * as metricool from './providers/metricool.js';
@@ -18,6 +19,9 @@ const app = express();
 app.disable('x-powered-by');
 app.set('trust proxy', 1); // sits behind Caddy
 app.use(express.json({ limit: '256kb' }));
+
+// OAuth sign-in: discovery, registration, consent and token endpoints.
+app.use(oauthRouter((req) => `${req.protocol}://${req.get('host')}`));
 
 // --- public, no password ---------------------------------------------------
 

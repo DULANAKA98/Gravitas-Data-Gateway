@@ -15,12 +15,22 @@ Works in **Claude Code** and **Codex**. Setup is two commands and takes a minute
 
 ## Setup
 
-You need an access token. Ask Dulanaka for one — it is a short phrase he will
-give you. Everything below refers to it as `YOUR_TOKEN`.
+### Easiest — Claude on the web (no commands at all)
+
+1. Go to **claude.ai**
+2. **Settings → Connectors → Add custom connector**
+3. Paste this address:
+
+```
+https://167-233-142-168.sslip.io/mcp
+```
+
+4. Click **Connect**. A sign-in page opens.
+5. Type the access password and click **Connect**.
+
+Done. Ask Dulanaka for the password if you do not have it.
 
 ### Claude Code
-
-Paste these two lines into Claude Code, one at a time:
 
 ```
 /plugin marketplace add DULANAKA98/Gravitas-Data-Gateway
@@ -30,38 +40,24 @@ Paste these two lines into Claude Code, one at a time:
 /plugin install dulanaka-gateway
 ```
 
-Then set your token. On **Windows**, paste this into Command Prompt:
-
-```
-setx DULANAKA_GATEWAY_TOKEN "YOUR_TOKEN"
-```
-
-On **Mac**, paste this into Terminal:
-
-```
-echo 'export DULANAKA_GATEWAY_TOKEN="YOUR_TOKEN"' >> ~/.zshrc && source ~/.zshrc
-```
-
-Close Claude Code and open it again. That is it.
+You will be prompted to sign in the first time you use it — same password page
+as above.
 
 ### Codex
 
-Paste this into your terminal, replacing `YOUR_TOKEN`:
+```
+codex mcp add gravitas --url https://167-233-142-168.sslip.io/mcp
+```
 
-```
-codex mcp add gravitas --url https://167-233-142-168.sslip.io/mcp --header "Authorization: Bearer YOUR_TOKEN"
-```
+Codex opens the same sign-in page on first use.
 
 If your version of Codex does not have `codex mcp add`, open `~/.codex/config.toml`
-in any text editor and add these three lines at the bottom:
+in any text editor and add these two lines at the bottom:
 
 ```toml
 [mcp_servers.gravitas]
 url = "https://167-233-142-168.sslip.io/mcp"
-http_headers = { Authorization = "Bearer YOUR_TOKEN" }
 ```
-
-Restart Codex.
 
 ### Checking it worked
 
@@ -69,9 +65,7 @@ Ask your assistant:
 
 > which clients can you see in the Gravitas gateway?
 
-It should list frisogoldmy, 7DAYS, CIMB Malaysia and Pocky. If it says it has no
-such tool, close the app completely and reopen it — the token is only read at
-startup.
+It should list frisogoldmy, 7DAYS, CIMB Malaysia and Pocky.
 
 ---
 
@@ -96,10 +90,12 @@ There is no tool here that changes anything, by design.
 ## Troubleshooting
 
 **"I don't have access to that tool"** — close the app fully and reopen it.
-Environment variables are read once at startup.
 
-**"Invalid or missing token"** — your token may have been revoked, or there is a
-typo. Check with Dulanaka.
+**"That password was not accepted"** — check with Dulanaka. After several wrong
+attempts the gateway pauses new attempts from your address for 15 minutes.
+
+**Asked to sign in again** — sessions last 30 days, then you reconnect with the
+same password.
 
 **"This access link does not cover X"** — your token is scoped to certain
 clients only. Ask Dulanaka to widen it.

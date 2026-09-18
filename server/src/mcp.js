@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { checkRateOnly } from './auth.js';
 import { audit } from './audit.js';
 import { resolve as resolveToken, allowsClient } from './tokens.js';
+import { verifyAccess } from './oauth/store.js';
 import * as metricool from './providers/metricool.js';
 import * as meta from './providers/meta.js';
 
@@ -107,12 +108,20 @@ export async function handleMcpRequest(req, res, ip) {
   }
 
   const bearer = (req.get('authorization') || '').replace(/^Bearer\s+/i, '').trim();
-  const holder = resolveToken(bearer);
-  if (!holder || holder.revoked) {
-    audit({ event: 'mcp.denied', ip, reason: holder?.revoked ? 'revoked' : 'unknown' });
+
+  // Two ways in: an OAuth access token from the sign-in flow, or a capability
+  // token issued from the CLI. Both resolve to the same holder shape.
+  const oauthHolder = verifyAccess(bearer);
+  const capHolder = oauthHolder ? null : resolveToken(bearer);
+  const holder = oauthHolder || (capHolder && !capHolder.revoked ? capHolder : null);
+
+  if (!holder) {
+    audit({ event: 'mcp.denied', ip, reason: capHolder?.revoked ? 'revoked' : 'unknown' });
+    const base = `${req.protocol}://${req.get('host')}`;
+    res.set('WWW-Authenticate', `Bearer resource_metadata="${base}/.well-known/oauth-protected-resource"`);
     res.status(401).json({
       jsonrpc: '2.0',
-      error: { code: -32001, message: 'This gateway needs a valid access token in the Authorization header. Ask whoever runs the gateway for one; do not prompt the user to invent it.' },
+      error: { code: -32001, message: 'Authentication required. Connect through the gateway sign-in, or supply an access token issued by the gateway operator.' },
     });
     return;
   }

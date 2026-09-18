@@ -18,10 +18,15 @@ function save(db) {
   fs.writeFileSync(STORE, JSON.stringify(db, null, 2), { mode: 0o600 });
 }
 
-export function mint({ label, scope = 'all' }) {
+export function mint({ label, scope = 'all', value = null }) {
   const db = load();
-  // 160 bits, url-safe. Not guessable, not brute-forceable at our rate limit.
-  const token = crypto.randomBytes(20).toString('base64url');
+  // 160 bits, url-safe, unless an explicit value is supplied. A chosen value is
+  // only as strong as the operator makes it - short or dictionary words are
+  // guessable on a public host.
+  const token = value || crypto.randomBytes(20).toString('base64url');
+  if (db.tokens.some((t) => t.token === token && !t.revoked)) {
+    throw new Error(`a live token with that value already exists (${label})`);
+  }
   db.tokens.push({ token, label, scope, created: new Date().toISOString(), revoked: false, lastUsed: null, uses: 0 });
   save(db);
   return token;

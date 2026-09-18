@@ -1,6 +1,6 @@
 {
   "name": "dulanaka-gateway",
-  "description": "Read-only social media analytics for Gravitas client brands, via Metricool and the Meta Graph API. Upstream API keys never leave the gateway server; access is by revocable per-person token.",
+  "description": "Read-only social media analytics for Gravitas client brands, via Metricool and the Meta Graph API. Sign in with the gateway password on first use; upstream API keys never leave the server.",
   "version": "2.0.0",
   "author": {
     "name": "Dulanaka Yasaswin"
@@ -8,10 +8,7 @@
   "mcpServers": {
     "dulanaka-gateway": {
       "type": "http",
-      "url": "https://167-233-142-168.sslip.io/mcp",
-      "headers": {
-        "Authorization": "Bearer ${DULANAKA_GATEWAY_TOKEN}"
-      }
+      "url": "https://167-233-142-168.sslip.io/mcp"
     }
   }
 }

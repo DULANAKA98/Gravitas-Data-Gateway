@@ -30,6 +30,13 @@ export const config = {
     lockoutMs: Number(process.env.LOCKOUT_MS || 900_000), // 15 min
   },
 
+  oauth: {
+    // Typed into a form on this server's own origin, never placed in a URL and
+    // never handled by an agent - so an ordinary memorable password is fine.
+    password: process.env.OAUTH_PASSWORD || null,
+    accessTtlMs: Number(process.env.OAUTH_ACCESS_TTL_MS || 30 * 24 * 3600 * 1000),
+  },
+  oauthStorePath: process.env.OAUTH_STORE_PATH || '/var/lib/dulanaka-gateway/oauth.json',
   tokenStorePath: process.env.TOKEN_STORE_PATH || '/var/lib/dulanaka-gateway/tokens.json',
   auditLogPath: process.env.AUDIT_LOG_PATH || '/var/log/dulanaka-gateway/audit.log',
 };
