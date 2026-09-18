@@ -97,6 +97,33 @@ export function buildMcpServer(ctx) {
     },
   }, (a) => meta.pageInsights(a));
 
+  g('meta_ig_media_insights', {
+    title: 'Meta: per-post Instagram insights',
+    description: 'Reach, views and engagement for one Instagram post, reel or carousel. Get a mediaId from meta_ig_media first. Leave metrics empty to get the full set valid for that media type - reels support watch-time metrics, feed and carousel support profile_visits and follows. Note impressions and plays are dead on current API versions; views replaced them.',
+    inputSchema: {
+      mediaId: z.string().describe('Instagram media id, from meta_ig_media'),
+      metrics: z.array(z.string()).optional().describe('Override the defaults, e.g. ["reach","views"]'),
+    },
+  }, (a) => meta.igMediaInsights(a));
+
+  g('meta_raw', {
+    title: 'Meta: raw GET',
+    description: 'Read-only passthrough to any Graph API GET path, for anything the wrapped tools do not cover.',
+    inputSchema: {
+      path: z.string().describe('Graph path beginning with /, e.g. /me or /<media-id>/insights'),
+      query: z.record(z.string()).optional().describe('Extra query parameters'),
+    },
+  }, (a) => meta.raw(a));
+
+  g('metricool_raw', {
+    title: 'Metricool: raw GET',
+    description: 'Read-only passthrough to any Metricool API GET path.',
+    inputSchema: {
+      path: z.string().describe('API path beginning with /'),
+      query: z.record(z.string()).optional(),
+    },
+  }, (a) => metricool.raw(a));
+
   return server;
 }
 

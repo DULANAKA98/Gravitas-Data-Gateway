@@ -157,6 +157,11 @@ api.get('/meta/ig-media', (req, res) => {
   const { igUserId, limit } = req.query;
   meta.igMedia({ igUserId, limit: limit ? Number(limit) : undefined }).then(send(res), oops(res));
 });
+api.get('/meta/ig-media-insights', (req, res) => {
+  const { mediaId, metrics } = req.query;
+  if (!mediaId) return res.status(400).json({ ok: false, error: 'mediaId is required' });
+  meta.igMediaInsights({ mediaId, metrics: metrics ? String(metrics).split(',') : null }).then(send(res), oops(res));
+});
 api.get('/meta/raw', (req, res) => {
   const { path: p, ...query } = req.query;
   if (!p) return res.status(400).json({ ok: false, error: 'path is required' });

@@ -20,7 +20,7 @@ account-specific, and a wrong one returns an error or another brand's data.
 Instagram, Facebook, TikTok, YouTube and more, so it is the only way to compare
 across networks. Returns published posts with per-post metrics.
 
-**Meta** (`meta_ig_insights`, `meta_ig_media`, `meta_page_insights`) — account-level
+**Meta** (`meta_ig_insights`, `meta_ig_media`, `meta_ig_media_insights`, `meta_page_insights`) — account-level
 metrics straight from Facebook and Instagram: reach, follower counts, page views.
 Covers only the gateway's default Meta account, not every client. Reach for it
 when the question is about reach or followers rather than individual posts.
@@ -34,6 +34,23 @@ All dates are `YYYY-MM-DD`. `metricool_content` requires explicit `start` and
 `end`. When someone says "last week" or "this month", resolve it to real dates
 before calling, and state the range you used so they can check it.
 
+## Per-post performance
+
+For "which post did best", call `meta_ig_media` to list posts, then
+`meta_ig_media_insights` with a `mediaId` for each one you care about. Leave
+`metrics` empty — the gateway picks the set valid for that media type, since
+they differ:
+
+- All types: `reach`, `views`, `total_interactions`, `saved`, `likes`, `comments`, `shares`
+- Reels only: `ig_reels_avg_watch_time`, `ig_reels_video_view_total_time` (milliseconds)
+- Feed and carousel only: `profile_visits`, `follows`
+
+Note `views` is not the same as `reach`: reach counts unique accounts, views
+counts impressions. A high views-to-reach ratio means people watched repeatedly.
+
+`meta_ig_media` returns likes and comments but no reach — it is a listing, not an
+insights call. Do not report engagement rate from it alone.
+
 ## Metric names that do not work
 
 Meta deprecated several Page metrics. These error on the current API version:
@@ -45,7 +62,13 @@ Meta deprecated several Page metrics. These error on the current API version:
 Use instead: `page_views_total`, `page_post_engagements`, `page_follows`,
 `page_daily_follows`, `page_actions_post_reactions_total`.
 
-For Instagram, `reach` is confirmed working. Others may need a different `period`.
+For Instagram account-level, `reach` is confirmed working; others may need a
+different `period`. For per-post insights, `impressions` and `plays` are dead on
+current API versions — `views` replaced both, and asking for either errors the
+whole call.
+
+`meta_raw` and `metricool_raw` are escape hatches for anything not wrapped above;
+both are read-only GETs.
 
 ## Analysing results
 
